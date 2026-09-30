@@ -71,17 +71,6 @@ export type ProfileConfig = {
 	}[];
 };
 
-export type AnalyticsConfig = {
-	cloudflareWebAnalytics: {
-		// Load the Cloudflare Web Analytics beacon from this site.
-		// Needed because Worker responses bypass Cloudflare's automatic setup.
-		enable: boolean;
-		// Site token from Cloudflare dashboard → Analytics & Logs → Web Analytics.
-		// Public by design: it is embedded in the served HTML.
-		token: string;
-	};
-};
-
 export type LicenseConfig = {
 	enable: boolean;
 	name: string;
