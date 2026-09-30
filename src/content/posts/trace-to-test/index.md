@@ -1,7 +1,7 @@
 ---
-title: trace-to-test：把一次浏览器操作，编译成零 LLM 的确定性回归
+title: trace-to-test × browser-harness：把一次浏览器操作，编译成零 LLM 的确定性回归
 published: 2026-09-30
-description: UI 回归的两条老路都有硬伤——手写脚本锚点靠人挑、页面一改就整片红；让 LLM 每次现场驱动浏览器，今天过明天不过。trace-to-test 的做法是让 AI 只在「探索」和「编译」两个阶段介入，把结论固化成一段不依赖模型的确定性代码，并给出可归因的三态判定：这次的失败，到底是产品坏了还是测试写坏了。
+description: UI 回归的两条老路都有硬伤——手写脚本锚点靠人挑、页面一改就整片红；让 LLM 每次现场驱动浏览器，今天过明天不过。trace-to-test 的做法是：用 browser-harness 录下一次真实操作，让 AI 只在「探索」和「编译」两个阶段介入，把结论固化成一段不依赖模型的确定性代码，并给出可归因的三态判定：这次的失败，到底是产品坏了还是测试写坏了。
 image: ./cover.png
 tags: [自动化测试, UI 回归, AI Agent, 测试架构, Python]
 category: 测试工程
