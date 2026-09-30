@@ -1,9 +1,11 @@
-# About
-This is the demo site for [Fuwari](https://github.com/saicaca/fuwari).
+# 关于
 
-::github{repo="saicaca/fuwari"}
+你好，我是「测试在玩AI」的作者 —— 杭州的一名测试开发工程师，日常测 AI 网关项目，业余折腾 AI 语音硬件。
 
-> ### Sources of images used in this site
-> - [Unsplash](https://unsplash.com/)
-> - [星と少女](https://www.pixiv.net/artworks/108916539) by [Stella](https://www.pixiv.net/users/93273965)
-> - [Rabbit - v1.4 Showcase](https://civitai.com/posts/586908) by [Rabbit_YourMajesty](https://civitai.com/user/Rabbit_YourMajesty)
+这个博客用来记录折腾过程：网关与模型的实测、ESP32 语音助手，以及各种踩坑笔记。
+
+- 写作方式：本地 Markdown，`git push` 后自动构建上线
+- 站点：Astro + Fuwari 主题，托管在 Cloudflare Workers
+- 图片：与文章同仓，构建期自动生成多尺寸 WebP
+
+> 站点上的图标与示例图片版权归原作者所有。
