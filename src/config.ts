@@ -1,4 +1,5 @@
 import type {
+	AnalyticsConfig,
 	ExpressiveCodeConfig,
 	LicenseConfig,
 	NavBarConfig,
@@ -70,4 +71,14 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	// Note: Some styles (such as background color) are being overridden, see the astro.config.mjs file.
 	// Please select a dark theme, as this blog theme currently only supports dark background color
 	theme: "github-dark",
+};
+
+export const analyticsConfig: AnalyticsConfig = {
+	cloudflareWebAnalytics: {
+		// Manual snippet instead of Cloudflare's "automatic setup": this site is served by a
+		// Worker, and auto-injection works by rewriting origin HTML, so it never fires here.
+		enable: true,
+		// From Cloudflare dashboard → Analytics & Logs → Web Analytics (site for yjfkk.eu.org).
+		token: "be0eef0e2d5c45849bbb5310c0054579",
+	},
 };
