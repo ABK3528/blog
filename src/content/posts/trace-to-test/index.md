@@ -15,6 +15,7 @@ UI 回归测试一直有个尴尬的地方：**报告是红的，但它说明不
 
 - 仓库：<https://github.com/ABK3528/trace-to-test>
 - 语言：Python ≥ 3.12，机制层零业务词，可跨项目复用
+- 录制层：`browser-harness`（CDP 直控 Chrome），可选依赖锁 `0.1.8`
 - 现状：v1 打通了一条 UI 竖切（录制 → 编译 → 回放），`make demo` 一条命令可自证
 
 ## 两条老路，各自的硬伤
@@ -36,11 +37,41 @@ UI 回归测试一直有个尴尬的地方：**报告是红的，但它说明不
 
 | 阶段 | 谁来做 | 产物 |
 | --- | --- | --- |
-| ① 录制 | 人（或 AI）手动走一遍真实流程 | `events.jsonl`：动作、坐标、URL、截图、获焦元素 |
+| ① 录制 | 人（或 AI）手动走一遍真实流程；浏览器驱动与录制由 `browser-harness` 提供 | `events.jsonl`：动作、坐标、URL、截图、获焦元素 |
 | ② 编译 | 编译器 + 一次带探针的回放 | `workflow.json` / `checks.json` / `unresolved.jsonl` / `checks.todo.md` |
 | ③ 回放 | 纯代码，**零 LLM** | 三态判定之一 + 失败点 |
 
 回放路径上没有任何模型调用，也没有随机性来源。同一条 workflow 在 CI 上可以跑一万次，结果一致——这正是它能进 CI 的前提。
+
+### 录制层是 browser-harness
+
+链路的第一段不是本框架自己实现的：**驱动浏览器、并把动作录下来的那一层是 [`browser-harness`](https://github.com/browser-use/browser-harness)**（browser-use 出品的开源包）。trace-to-test 把它当**可选依赖**锁在 `0.1.8`（`uv sync --extra browser`，不 fork、不 vendor），自己只负责编译和回放。
+
+![browser-harness 在链路里的位置：CDP 直控 Chrome，产出录制目录](./diagrams/07-harness-position.svg)
+
+它不走 WebDriver，而是**用一条 CDP 连接直控真实 Chrome**——这点对本框架很关键，因为编译期的探针回放需要在真实页面上执行 `elementFromPoint` 这类 DOM 查询。对上层它暴露三样东西：
+
+| 模块 | 作用 | 本框架怎么用 |
+| --- | --- | --- |
+| `helpers` | `goto` / `fill_input` / `click_at_xy` / `press_key` / `wait*` 等动作 | `Session` 的每一次动作都走它 |
+| `recorder` | 把动作按时间序写成录制 | 录制模式下由 `Session` 显式调用 |
+| `admin` | daemon 生命周期（自起 Chrome、退出回收） | 保证只连自己起的 Chrome + 独立 profile |
+
+一次录制的产物就是一个目录，`core/transcript/` 只读它、不做推断：
+
+```text
+meta.json      {name, title, started}
+events.jsonl   一行一个动作：动作名 + 坐标 + URL + 截图名 + 获焦元素
+0001.jpg …     每步动作之后的截图帧
+```
+
+**框架与 browser-harness 的契约只有这一层。** 所以它升级时受影响面有限，但也不是零：`core/transcript/recording.py` 里那份动作名集合与上游 `recorder.ACTIONS` 逐字对齐，并有一条测试盯着——上游改格式会先让测试红，而不是让回归静默变绿。这也是这里**锁 `0.1.8` 而不跟最新版**的原因：录制格式是唯一的对外契约，升级要连带改集合和固定录制样本，值得单独一次提交。
+
+三个绕不过去的细节（都写在代码注释里）：
+
+- **只有走 tracing 包装才会产生录制。** 直接 `import helpers` 驱动浏览器**不会**写出 `events.jsonl`，所以 `Session` 自己调 `recorder.observe`；且坐标必须**按位置参数**传——`recorder._details()` 是按下标取值的，改成关键字参数坐标就变成 `null`，编译器随即无坐标可反解。
+- **`BU_NAME` / `BU_CDP_URL` 必须在 `import browser_harness` 之前写进 `os.environ`。** daemon 名是 import 时读一次的，写晚了会**静默**落回默认 daemon 并挂到你自己正在用的浏览器上。框架用这两个变量把 browser-harness 关进自起的 Chrome + 独立 profile，退出时按 `user-data-dir=` 精确回收（裸路径会误伤无关进程）。
+- **密码框内容被上游遮蔽成 `•`**，URL 里的凭据也会被 scrub 成 `REDACTED`。这直接决定了「要编译的流程应当从已登录会话开始录」（详见下文已知边界）。
 
 ## 这条链上有两个语义鸿沟
 
@@ -56,7 +87,7 @@ UI 回归测试一直有个尴尬的地方：**报告是红的，但它说明不
 
 坐标直接写进回归，等于把分辨率、字号、布局全锁死。所以 `core/compile/` 的真身不是转录器，而是**「坐标 → 语义锚点」的反解器**。
 
-麻烦在于：录制里**没有「被点中的那个元素」**。动作里带的 `box` 是**当前获焦元素**的框，不是点击目标。想知道「当时点的是谁」，只能拿着坐标回到实时页面上重新问一次浏览器。
+麻烦在于：录制里**没有「被点中的那个元素」**。browser-harness 写进 `events.jsonl` 的 `box` 是**当前获焦元素**的框，不是点击目标。想知道「当时点的是谁」，只能拿着坐标回到实时页面上重新问一次浏览器。
 
 因此编译是一次**带探针的回放**：按录制顺序重放，在每个需要锚点的动作执行之前，用 `document.elementFromPoint(x, y)`（点击类）或 `document.activeElement`（输入/按键类）取元素快照，再交给纯函数排序器产出候选锚点。**编译器复用回放引擎——两者是同一个引擎的两种模式**：回放模式断言结果，探针模式采集锚点。
 
@@ -163,7 +194,7 @@ UI 回归测试一直有个尴尬的地方：**报告是红的，但它说明不
 ```bash
 git clone https://github.com/ABK3528/trace-to-test.git
 cd trace-to-test
-uv sync --extra browser --extra dev   # browser: CDP 直控本机 Chrome；dev: pytest
+uv sync --extra browser --extra dev   # browser: browser-harness（CDP 直控本机 Chrome）；dev: pytest
 ```
 
 仓库自带一个**零依赖的极简靶场**（`target_app/`：登录页、异步列表、弹窗、暗色模式、一个可控的偶发失败端点），用来自证整条链。跑它：
@@ -245,6 +276,7 @@ make portability   # ✅ portability check passed (core checks)
 这些是设计上就知道、且写在 README 里的：
 
 - **`type_text` 暂不编译**，探索流程请优先用 `fill_input`；
+- **录制层锁在 `browser-harness` 0.1.8**（上游已到 0.1.13，且它本身是个仍在快速演进的 agent 浏览器工具）：录制格式是唯一的对外契约，升级要连带更新动作名集合与固定录制样本；
 - **`scroll` 事件按设计丢弃**：既不产生步骤，也不记 `Unresolved`。所以「滚动之后才点到的元素」可能编译出一个视口外的目标——要稳定就在探索脚本里先把元素滚进视口；
 - **`xy` 只是兜底锚点**，用到会打 `WARN`；
 - **v1 只覆盖 UI 轨**：接口生成 / 流程编排 / 契约三轨只留了骨架；

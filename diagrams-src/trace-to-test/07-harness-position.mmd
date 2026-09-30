@@ -1,0 +1,14 @@
+flowchart TB
+    subgraph H["browser-harness 0.1.8 · 录制层（可选依赖，不 fork）"]
+        H1["helpers<br/>goto / fill / click / press / wait"]
+        H2["recorder<br/>动作 → events.jsonl"]
+        H3["admin<br/>daemon 自起 + 退出回收"]
+    end
+    C["本机 Chrome<br/>CDP 直控，不走 WebDriver"]
+    D["录制目录<br/>meta.json · events.jsonl · 0001.jpg …"]
+    T["core/transcript<br/>归一化成事件流"]
+    H1 --> C
+    C --> H2
+    H2 --> D
+    D --> T
+    H3 -.拉起 / 回收.-> C
