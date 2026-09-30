@@ -1,0 +1,17 @@
+flowchart TB
+    subgraph MECH["机制层 · core/ checks/ —— 零业务词，可移植"]
+        M1["transcript · 读录制<br/>归一化事件流"]
+        M2["compile · 坐标<br/>反解成语义锚点"]
+        M3["replay · 确定性回放<br/>三态判定 + 假红自查"]
+        M4["primitives · 会话<br/>等待 / 泄漏回收"]
+        M5["lint · 断言侧<br/>反模式检查"]
+    end
+    subgraph ADP["适配层 · adapters/ —— 业务只准活在这里"]
+        A1["target · 被测目标<br/>环境闸 / 构建标识"]
+        A2["oracle · 期望值从哪来"]
+        A3["instance · 提示词的<br/>项目实例片段"]
+    end
+    PC["scripts/portability_check.sh<br/>grep 业务词表 → 机制层必须零命中"]
+    M2 --> A1
+    M3 --> A2
+    PC -.自检.-> MECH

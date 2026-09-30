@@ -1,0 +1,10 @@
+flowchart TD
+    X["要定位的那个元素"] --> Q1{"有 data-testid 家族属性？"}
+    Q1 -- 有 --> T1["testid 锚点 · 最稳，不随文案变"]
+    Q1 -- 无 --> Q2{"有 role + 可访问名？"}
+    Q2 -- 有 --> T2["role 锚点 · copy_sensitive"]
+    Q2 -- 无 --> Q3{"可见文本唯一？"}
+    Q3 -- 是 --> T3["text 锚点 · copy_sensitive"]
+    Q3 -- 否 --> Q4{"DOM 路径同级唯一？"}
+    Q4 -- 是 --> T4["path 锚点"]
+    Q4 -- 否 --> T5["xy 兜底 · fallback=true + WARN"]

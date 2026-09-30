@@ -1,0 +1,9 @@
+flowchart TD
+    A["回放：按锚点定位"] --> B{"锚点定位成功？"}
+    B -- 是 --> C{"外部来源的断言全过？"}
+    C -- 是 --> PASS["PASS"]
+    C -- 否 --> FP1["FAIL_PRODUCT · reason=assertion<br/>产品漂移或缺陷"]
+    B -- 否 --> D{"存在归一化近似匹配？"}
+    D -- 是 --> FP2["FAIL_PRODUCT · reason=anchor_drift<br/>元素还在，只是文案变了"]
+    D -- 否 --> FA["FAIL_ANCHOR · reason=missing / ambiguous<br/>测试写坏了"]
+    D -. testid 锚点不做近似匹配 .-> FA

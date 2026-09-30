@@ -1,0 +1,12 @@
+flowchart TB
+    subgraph S1["① 录制 · 人在浏览器里走一遍"]
+        A1["goto / fill / click / press"] --> A2["events.jsonl<br/>动作 · 坐标 · 截图"]
+    end
+    subgraph S2["② 编译 · 唯一需要浏览器的后置步骤"]
+        B1["按录制顺序探针回放<br/>elementFromPoint / activeElement"] --> B2["坐标 → 语义锚点"] --> B3["产出四个文件"]
+    end
+    subgraph S3["③ 回放 · 零 LLM，可上 CI"]
+        C1["按锚点定位 → 跑断言"] --> C2["三态判定<br/>停在第一个失败点"]
+    end
+    A2 --> B1
+    B3 --> C1

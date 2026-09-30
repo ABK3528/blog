@@ -1,0 +1,13 @@
+sequenceDiagram
+    autonumber
+    participant R as 录制事件
+    participant E as 回放引擎
+    participant P as 真实页面
+    participant S as 锚点排序器
+    R->>E: 按录制顺序重放到第 n 步
+    Note over R: 录制里没有「被点中的元素」<br/>box 是当前获焦元素的框
+    E->>P: elementFromPoint / activeElement
+    P-->>E: 元素快照（role / 文案 / DOM 路径）
+    E->>S: 元素快照
+    S-->>E: 候选锚点（testid → role → text → path）
+    E->>R: 解不出 → unresolved.jsonl
