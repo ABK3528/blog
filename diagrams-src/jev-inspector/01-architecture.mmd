@@ -1,0 +1,41 @@
+flowchart TB
+    URL["根 URL + crawl-mode"] --> MODE{"遍历模式"}
+    MODE -->|"page：当前页点一遍"| P1["单页探索"]
+    MODE -->|"site：整站 BFS 队列"| P2["整站探索<br/>max-pages · max-depth · 每页动作数"]
+
+    subgraph BROWSER["浏览器层：真实 Chromium（唯一依赖 playwright>=1.40）"]
+        direction TB
+        B1["page 三个监听器<br/>console · dialog · response"]
+        B2["Multi-Tab Guardian<br/>context.on(&quot;page&quot;)：弹窗抓下来<br/>验活（console / 4xx）后立即 close"]
+    end
+
+    subgraph DEFENSE["防御层：不写用例也不跑飞"]
+        direction TB
+        D1["四层递进去重<br/>URL 规范化 → 路径原型配额<br/>→ DOM 结构指纹 → 模型语义"]
+        D2["三级弹性回溯<br/>L1 清遮罩 / L2 go_back / L3 硬重置"]
+        D3["破坏性动作守卫<br/>destructive_keywords 命中即跳过"]
+    end
+
+    subgraph JUDGE["判定层：这一页到底坏没坏"]
+        direction TB
+        J1["证据汇总<br/>提示类 DOM 元素 + console + 4xx/5xx + dialog"]
+        J2["Jev 客户端<br/>配了 TYPESAFE_API_KEY 才走这层"]
+        J3["内置关键词兜底<br/>500 / 404 / error / 失败 / 网络错误…"]
+        J1 --> J2
+        J2 -.->|"无 key 或调用失败"| J3
+    end
+
+    P1 --> B1
+    P2 --> B1
+    B1 --> D1 --> D2 --> D3 --> J1
+    B2 -.->|"子页面的 4xx/5xx 也算证据"| J1
+    J3 -->|"命中"| E["错误记录 + 自动截图"]
+    J3 -->|"没命中"| N["计入覆盖率，继续下一个动作"]
+    E --> OUT["产物：traversal_report.json<br/>HTML 看板 · inspection_metrics.prom<br/>飞书 / 钉钉 / 企微 / Slack 告警"]
+    N --> OUT
+
+    style D1 fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style D2 fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style D3 fill:#fef9c3,stroke:#ca8a04
+    style J3 fill:#fee2e2,stroke:#dc2626
+    style E fill:#dcfce7,stroke:#16a34a

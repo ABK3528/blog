@@ -1,0 +1,26 @@
+flowchart LR
+    subgraph DEDUP["四层递进去重：挡住无限下钻"]
+        direction TB
+        L1["L1 URL 规范化<br/>去锚点 · 剔 utm_* · 重排 query"]
+        L2["L2 路径原型配额<br/>/items/:id 只采样 N 页"]
+        L3["L3 DOM 结构指纹<br/>同构 tr / li 只测第一个"]
+        L4["L4 模型语义去重"]
+        L1 --> L2 --> L3 --> L4
+    end
+
+    subgraph BACK["三级弹性回溯：挡住状态污染"]
+        direction TB
+        B1["L1 原位软回溯（静默）<br/>ESC · 点 .close · 隐藏遮罩"]
+        B2["L2 go_back<br/>domcontentloaded, 4s"]
+        B3["L3 硬重置<br/>goto 基准 URL"]
+        B1 --> B2 --> B3
+    end
+
+    DEDUP -->|"剩下要执行的动作"| BACK
+    BACK --> E["实测：L2 触发 12 次<br/>没卡死一次"]
+
+    style L2 fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style L3 fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style B1 fill:#fef9c3,stroke:#ca8a04
+    style B3 fill:#fee2e2,stroke:#dc2626
+    style E fill:#dcfce7,stroke:#16a34a

@@ -1,0 +1,27 @@
+flowchart TB
+    START["一个只有 1 个按钮的页面<br/>点完之后 3 秒才出现纯文本失败提示<br/>没有网络请求 · 没有 console.error · 没有 4xx/5xx"] --> C1{"提示元素在不在扫描器的<br/>选择器集合里"}
+    C1 -->|"不在：我写的是 id=&quot;toast&quot;<br/>扫描的是 .toast / .alert / [class*=error] …"| MISS1["证据链第 1 步就断了<br/>哪怕等再久也看不见"]
+    C1 -->|"在：给它加上 class=&quot;toast&quot;"| C2{"等待窗口够不够长<br/>wait_after_action"}
+
+    C2 -->|"1.0 s：检查时提示还没渲染出来"| MISS2["DOM 里那一刻还是空的<br/>其他三路证据也都没有"]
+    C2 -->|"5.0 s：检查时提示已可见"| HIT["捕获：FAILED<br/>detected_texts = 校验失败，请联系管理员<br/>error_type = request_error · confidence 0.85"]
+
+    MISS1 --> R["PASSED（0 个错误）"]
+    MISS2 --> R
+    HIT --> OK["PASSED 的反面不是 FAILED，是「它看见了」"]
+
+    subgraph MATRIX["这次跑的 2 × 2：四组里只有一组抓到"]
+        direction LR
+        M1["无 class · 等 1 s → PASSED ✗"]
+        M2["无 class · 等 5 s → PASSED ✗"]
+        M3["有 class · 等 1 s → PASSED ✗"]
+        M4["有 class · 等 5 s → FAILED ✓"]
+    end
+
+    style MISS1 fill:#fee2e2,stroke:#dc2626
+    style MISS2 fill:#fee2e2,stroke:#dc2626
+    style HIT fill:#dcfce7,stroke:#16a34a
+    style M4 fill:#dcfce7,stroke:#16a34a
+    style M1 fill:#fef9c3,stroke:#ca8a04
+    style M2 fill:#fef9c3,stroke:#ca8a04
+    style M3 fill:#fef9c3,stroke:#ca8a04
