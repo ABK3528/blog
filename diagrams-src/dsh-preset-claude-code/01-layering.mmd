@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph COMPOSE["dsh 启动时的配置组合（后一层按行覆盖前一层）"]
+        direction TB
+        L1["① bundle 层<br/>profile manifest 里 dsh.profile.bundles 列出的包各带一份 patch"]
+        L2["② profile 自己的 cordis.patch.yml<br/>~/.dsh/profiles/&lt;name&gt;/cordis.patch.yml"]
+        L3["③ home 层<br/>$DSH_HOME/cordis.patch.yml"]
+        L4["④ 命令行覆盖层<br/>--patch extra.yml（可重复，按 argv 顺序）"]
+        L1 --> L2 --> L3 --> L4
+    end
+
+    PKG["dsh-preset-claude-code<br/>package.json 里声明<br/>dsh.bundle.patch → ./cordis.patch.yml"] -.->|"作为第 ① 层加入"| L1
+
+    L4 --> TREE["最终组合树"]
+    TREE --> R["agent-preset-registry<br/>default: standard"]
+    TREE --> NEW["preset-claude-code<br/>id: claude-code · order: 0"]
+    TREE --> OLD["官方四个预设<br/>standard(1) · ptc(2) · minimal(3) · cordis(4)"]
+
+    style NEW fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style PKG fill:#fef9c3,stroke:#ca8a04

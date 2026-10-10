@@ -1,0 +1,18 @@
+flowchart LR
+    subgraph PRESET["@deepseek-ai/dsh-agent-preset　id: claude-code　order: 0"]
+        direction TB
+        PE["persona<br/>prefix = Claude Code 官方提示词<br/>complete: true · includeRuntimeContext: true"]
+        AI["agent-instructions<br/>maxBytes: 65536"]
+        TOOLS["工具行<br/>bash / pwsh（按平台 disabled）· fs · fs-search · jobs<br/>skill-filesystem · tool-skill · goal · todo · ask-user · web · present"]
+        PLAN["planning 组（isolate.planMode）<br/>→ plan-mode"]
+        COMP["compaction 组（isolate.compaction / toolResultPruner）<br/>→ compaction-basic · command-compact · tool-result-pruner"]
+    end
+
+    PE --> SP["system prompt<br/>只剩这一个 section"]
+    AI --> SP
+    TOOLS --> AG["Agent 的一次会话"]
+    PLAN --> AG
+    COMP --> AG
+
+    style PE fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style SP fill:#dcfce7,stroke:#16a34a
