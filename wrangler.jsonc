@@ -8,6 +8,14 @@
 	},
 	"routes": [
 		{
+			"pattern": "yjfkk.dev",
+			"custom_domain": true
+		},
+		{
+			"pattern": "www.yjfkk.dev",
+			"custom_domain": true
+		},
+		{
 			"pattern": "blog.yjfkk.eu.org",
 			"custom_domain": true
 		},
