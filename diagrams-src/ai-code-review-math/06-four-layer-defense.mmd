@@ -1,0 +1,24 @@
+flowchart TB
+    GEN["🤖 AI 编写业务代码（基于大模型单步 99% 生成能力）"]
+
+    subgraph DEFENSE["AI 代码与测试落地的四级工程防御漏斗"]
+        direction TB
+        L1["【第 1 道防线：压死误伤率 a】 编译器 / Linter / 静态类型系统<br/>TypeScript / mypy / Ruff · 误伤率 a ≈ 0<br/>⚡ 秒级拦截语法、拼写与类型不匹配，不耗费 LLM 算力"]
+        
+        L2["【第 2 道防线：阻断前提错 ρ】 独立上下文契约测试与断言<br/>切断生成会话历史 · 由独立 QA 流程根据 PRD 背靠背编写单测<br/>🛡️ 消灭模型自洽偏置，杜绝'测试断言全绿、业务逻辑全错'的伪单测"]
+        
+        L3["【第 3 道防线：定向抓局部 d】 独立 Agent / PR 专项审查<br/>单次 Review 只聚焦单一维度（并发竞态、异常分支、安全边界）<br/>🎯 打破多重审查盲区重叠度 ω，以清晰目标抓取深层缺陷"]
+        
+        L4["【第 4 道防线：守住高返工 R】 核心系统发布门禁<br/>返工倍数 R > 15 的关键路径（金融账本、数据库 DDL、主网关发布）<br/>🔒 强制确定性 CI 全绿 + 人工工程师二次签署，对冲灾难性回滚"]
+
+        L1 --> L2 --> L3 --> L4
+    end
+
+    GEN --> L1
+    L4 --> PROD["🚀 生产发布 / 安全合入主干（整体可靠性从 90.4% 跃升至 99%+）"]
+
+    style L1 fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+    style L2 fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style L3 fill:#ede9fe,stroke:#7c3aed,stroke-width:2px
+    style L4 fill:#fef9c3,stroke:#ca8a04,stroke-width:2px
+    style PROD fill:#bbf7d0,stroke:#15803d,stroke-width:2px

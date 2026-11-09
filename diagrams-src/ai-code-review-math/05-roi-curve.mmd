@@ -1,0 +1,15 @@
+flowchart TB
+    START["工程任务类型与返工代价倍数 R<br/>（修复逃逸 Bug 成本 ÷ 单次生成成本）"] --> COND{"返工代价 R 是否 > 15？"}
+
+    COND -->|R < 15：低代价任务| SKIP["❌ 不建议加繁琐 Review<br/>如：一次性探针、两步小脚本<br/>不审期望 1.2 vs 审一次 2.1<br/>结论：直接跑，挂了随时再敲一句更划算"]
+    COND -->|R ≥ 15：高代价任务| DO["✅ 坚决必须做 Review<br/>如：核心业务特性、发布流水线、数据库变更<br/>R=50 时：不审期望 5.8 vs 审一次 3.5 (省 40% 成本)<br/>R=100 时：不审期望 10.6 vs 审一次 5.0 (省 53% 成本)"]
+
+    DO --> MULTI{"要不要同一个模型再审第二遍、第三遍？"}
+
+    MULTI -->|同一模型连看 3 遍| DIMINISH["❌ 边际收益指数衰减<br/>第 2 次增量 = ω · d (盲区重叠度 ω ≈ 0.5)<br/>第 3 次增量 = ω² · d<br/>成本线性翻倍，收益迅速见底"]
+    MULTI -->|换视角 / 换工具| DIVERSE["✅ 正确解法：多维度异构校验<br/>1. 确定性测试 (跑用例)<br/>2. 换独立 Prompt (专项看异常/并发)<br/>3. 换不同架构模型或人工终审"]
+
+    style SKIP fill:#fef2f2,stroke:#ef4444,stroke-width:1px
+    style DO fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+    style DIMINISH fill:#fee2e2,stroke:#dc2626
+    style DIVERSE fill:#dbeafe,stroke:#2563eb,stroke-width:2px

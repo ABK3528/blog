@@ -1,0 +1,22 @@
+flowchart TB
+    IN["AI 生成代码<br/>基础错误率 e = 1.0% · 正确率 99.0%"] --> SPLIT{"Review 介入核验"}
+
+    SPLIT -->|真实 Bug 占 1.0%| TRUE_BUG["真实缺陷分流"]
+    SPLIT -->|正确代码占 99.0%| TRUE_OK["正确代码分流"]
+
+    TRUE_BUG -->|检出率 d| CAUGHT["✅ 被成功拦截并修正<br/>消除比例: e · d"]
+    TRUE_BUG -->|漏检率 1-d| MISSED["❌ 未检出的逃逸缺陷<br/>残留比例: e · (1 - d)"]
+
+    TRUE_OK -->|正确放行 1-a| PASSED["✅ 保持正确逻辑<br/>正常流转"]
+    TRUE_OK -->|误伤率 a| HURT["❌ 乱改/引入新幻觉<br/>人为引入错误: a"]
+
+    MISSED --> SUM["单步残余总错误率<br/>e_res = e · (1 - d) + a"]
+    HURT --> SUM
+
+    SUM --> LIMIT["⚠️ 致命数学上界：当检出率 d = 100% 时<br/>十步整体成功率 = (1 - a)^10<br/>Review 的上限绝不可能超过其自身的误伤率 a！"]
+
+    style CAUGHT fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+    style PASSED fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+    style MISSED fill:#fee2e2,stroke:#dc2626,stroke-width:2px
+    style HURT fill:#fef2f2,stroke:#ef4444,stroke-width:2px
+    style LIMIT fill:#fef9c3,stroke:#ca8a04,stroke-width:2px

@@ -1,0 +1,28 @@
+flowchart TB
+    BUG["代码缺陷本质分类<br/>━━━━━━━━━━━━━<br/>① 局部错 (Local Error)：拼写、漏判空、边界越界 · 占 1 - ρ (约 70%)<br/>② 前提错 (Premise Error)：需求看反、架构假设想歪 · 占 ρ (约 30%)"]
+
+    subgraph SAME["方案 A：同上下文自审（共用会话历史）"]
+        direction TB
+        S1["局部错检出率 d = 80%"]
+        S2["前提错检出率 = 0% ❌（共用偏置，帮自己圆谎）"]
+        S3["同上下文有效检出率：d · (1 - ρ) = 56.0%<br/>十步整体成功率：94.7%（常写出测试全绿但功能全错的伪单测）"]
+        S1 --> S3
+        S2 --> S3
+    end
+
+    subgraph DIFF["方案 B：换独立上下文（切断历史 / 背靠背）"]
+        direction TB
+        D1["局部错检出率 d = 80%"]
+        D2["前提错检出率 d' = 70% ✔️（零思维包袱，依契约挑刺）"]
+        D3["换上下文有效检出率：d(1-ρ) + d'ρ = 77.0%<br/>十步整体成功率：96.8%（多赚 2.1 个百分点纯可靠性！）"]
+        D1 --> D3
+        D2 --> D3
+    end
+
+    BUG --> SAME
+    SAME --> DIFF
+
+    style SAME fill:#fef2f2,stroke:#ef4444,stroke-width:1px
+    style DIFF fill:#f0fdf4,stroke:#22c55e,stroke-width:1px
+    style S3 fill:#fee2e2,stroke:#dc2626
+    style D3 fill:#dcfce7,stroke:#16a34a
